@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const dotenv = require('dotenv');
 
 // Load environment variables.  If no `.env` file exists the
-// defaults from `.env.example` will be used when executing via
+// defaults from `.env` will be used when executing via
 // npm scripts because dotenv doesn't set any values for undefined
 // variables; instead we rely on destructuring defaults below.
 dotenv.config();

@@ -1,54 +1,25 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/database');
+// models/Employee.js
+module.exports = (sequelize, DataTypes) => {
+    const Employee = sequelize.define('Employee', {
+        user_id: {type: DataTypes.BIGINT, primaryKey: true},
+        employee_id: {type: DataTypes.STRING(64), allowNull: false, unique: true},
+        phone: {type: DataTypes.STRING(32), allowNull: false},
+        address: {type: DataTypes.STRING(255), allowNull: false},
+        fathers_name: {type: DataTypes.STRING(120), allowNull: false},
+        aadhar_no: {type: DataTypes.STRING(32), allowNull: false, unique: true},
+        date_of_birth: {type: DataTypes.DATEONLY, allowNull: false},
+        work_position: {type: DataTypes.STRING(80), allowNull: false},
+        created_at: {type: DataTypes.DATE, allowNull: false, defaultValue: sequelize.fn('SYSUTCDATETIME')},
+        updated_at: {type: DataTypes.DATE, allowNull: false, defaultValue: sequelize.fn('SYSUTCDATETIME')},
+    }, {
+        tableName: 'employees',
+        timestamps: false, // handled by triggers/defaults
+        underscored: true
+    });
 
-/**
- * Employee stores personal details for a user.  It shares its
- * primary key with the ``user`` table.  Deleting a user cascades to
- * delete the associated employee record.  See
- * ``models/employee.py`` in the original project for details.
- */
-const Employee = sequelize.define('Employee', {
-  id: {
-    type: DataTypes.INTEGER.UNSIGNED,
-    primaryKey: true,
-    references: {
-      model: 'user',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
-  },
-  phone: {
-    type: DataTypes.STRING(20),
-    allowNull: false
-  },
-  work_position: {
-    type: DataTypes.STRING(120),
-    allowNull: false
-  },
-  date_of_birth: {
-    type: DataTypes.DATE,
-    allowNull: false
-  },
-  profile_photo: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  address: {
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  fathers_name: {
-    type: DataTypes.STRING(120),
-    allowNull: false
-  },
-  aadhar_no: {
-    type: DataTypes.STRING(12),
-    unique: true,
-    allowNull: false
-  }
-}, {
-  tableName: 'employees',
-  timestamps: false
-});
+    Employee.associate = (models) => {
+        Employee.belongsTo(models.AuthUser, {foreignKey: 'user_id', as: 'User'});
+    };
 
-module.exports = Employee;
+    return Employee;
+};
