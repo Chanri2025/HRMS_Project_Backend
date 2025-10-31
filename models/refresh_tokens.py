@@ -1,6 +1,5 @@
 # models/refresh_token.py
 from __future__ import annotations
-
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import BigInteger, Integer, String, Boolean, DateTime, ForeignKey
@@ -16,7 +15,7 @@ class RefreshToken(Base):
     user_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("dbo.users.user_id", ondelete="CASCADE"), nullable=False
     )
-    token_hash: Mapped[str] = mapped_column(String(64), index=True, nullable=False)  # sha256 hex
+    token_hash: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
     user_agent: Mapped[Optional[str]] = mapped_column(String(255))

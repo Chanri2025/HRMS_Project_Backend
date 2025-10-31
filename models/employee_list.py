@@ -1,7 +1,8 @@
+# models/employee.py
 from __future__ import annotations
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, String, Date, DateTime, Integer
+from sqlalchemy import BigInteger, String, Date, DateTime, Integer, ForeignKey
 from datetime import datetime, date
 from .base import Base
 
@@ -10,7 +11,9 @@ class Employee(Base):
     __tablename__ = "employee_list"
     __table_args__ = {"schema": "dbo"}
 
-    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("dbo.users.user_id", ondelete="CASCADE"), primary_key=True
+    )
     employee_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     card_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
@@ -19,7 +22,6 @@ class Employee(Base):
     phone: Mapped[Optional[str]] = mapped_column(String(32))
     address: Mapped[Optional[str]] = mapped_column(String(255))
 
-    # map as ints only; DB has the FK constraints
     dept_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     sub_dept_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     designation_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -32,4 +34,4 @@ class Employee(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
-    User = relationship("AuthUser", back_populates="Employee")
+    User = relationship("AuthUser", back_populates="Employee", uselist=False)
