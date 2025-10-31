@@ -95,9 +95,8 @@ def make_refresh_token() -> dict:
 
 
 def refresh_exp(days: Optional[int] = None) -> datetime:
-    """Compute refresh token expiry (UTC)."""
     d = days if days is not None else settings.REFRESH_DAYS
-    return datetime.now(timezone.utc) + timedelta(days=d)
+    return datetime.utcnow() + timedelta(days=d)
 
 
 # ---------------------------

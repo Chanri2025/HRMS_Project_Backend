@@ -4,6 +4,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.sql import false  # optional, see below
 
 from config import settings
 from db import get_db
@@ -163,7 +165,7 @@ def login(payload: dict, request: Request, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(u)
 
-    u.last_active = datetime.now(timezone.utc)
+    u.last_active = datetime.utcnow()
     db.commit()
     db.refresh(u)
 
@@ -205,15 +207,21 @@ def refresh(payload: dict | None, request: Request, db: Session = Depends(get_db
     from hashlib import sha256 as _sha256
     digest = _sha256(token.encode("utf-8")).hexdigest()
 
-    rt = db.scalar(select(RefreshToken).where(RefreshToken.token_hash == digest, RefreshToken.revoked == False))
-    if not rt or rt.expires_at <= datetime.now(timezone.utc):
+    rt = db.scalar(
+        select(RefreshToken).where(
+            RefreshToken.token_hash == digest,
+            RefreshToken.revoked == false()  # or keep == False if you prefer
+        )
+    )
+    now = datetime.utcnow()
+    if not rt or rt.expires_at <= now:
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
     u = db.get(AuthUser, rt.user_id)
     if not u or not u.is_active:
         raise HTTPException(status_code=401, detail="User inactive or missing")
 
-    u.last_active = datetime.now(timezone.utc)
+    u.last_active = datetime.utcnow()
     db.commit()
 
     rt.revoked = True

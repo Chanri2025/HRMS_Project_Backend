@@ -8,6 +8,7 @@ from sqlalchemy import text
 from config import settings
 from db import get_db, ping_db, SessionLocal
 from routes import api_router
+
 # from utils.seed import seed_super_admin_sql  # <-- NEW
 
 # Router presence flag (kept from your code)
@@ -18,7 +19,7 @@ try:
 except Exception:
     ROUTERS_PRESENT = False
 
-app = FastAPI(title="FastAPI + MSSQL Boilerplate", version="0.1.0")
+app = FastAPI(title="HRMS Backend - 1: APIs", version="0.0.1")
 
 # CORS (open; tighten later)
 app.add_middleware(
