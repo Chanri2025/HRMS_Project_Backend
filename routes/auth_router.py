@@ -1,11 +1,10 @@
 from __future__ import annotations
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from sqlalchemy.sql import false  # optional, see below
+from sqlalchemy.sql import false
 
 from config import settings
 from db import get_db
@@ -21,7 +20,7 @@ from utils.security import (
     maybe_rehash_after_verify,
 )
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 
 # ---------- Helpers ----------

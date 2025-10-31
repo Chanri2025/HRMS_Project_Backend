@@ -8,12 +8,12 @@ from sqlalchemy import text
 from config import settings
 from db import get_db, ping_db, SessionLocal
 from routes import api_router
-
-# from utils.seed import seed_super_admin_sql  # <-- NEW
+from routes import org_router
 
 # Router presence flag (kept from your code)
 try:
-    from routes import api_router  # noqa: F401
+    from routes import api_router
+    from routes import org_router
 
     ROUTERS_PRESENT = True
 except Exception:
@@ -33,6 +33,7 @@ app.add_middleware(
 # include all routers
 if ROUTERS_PRESENT:
     app.include_router(api_router)
+    app.include_router(org_router)
 
 
 @app.on_event("startup")
