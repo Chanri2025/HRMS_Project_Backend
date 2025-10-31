@@ -1,10 +1,12 @@
+# config.py
+from typing import Optional
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-def _to_bool(v: str | None, default: bool) -> bool:
+def _to_bool(v: Optional[str], default: bool) -> bool:
     if v is None:
         return default
     return v.strip().lower() in {"1", "true", "yes", "y"}
@@ -25,6 +27,7 @@ class Settings:
     JWT_SECRET: str = os.getenv("JWT_SECRET", "change-me")
     ACCESS_MIN: int = int(os.getenv("ACCESS_MIN", "15"))
     REFRESH_DAYS: int = int(os.getenv("REFRESH_DAYS", "15"))
+
     USERS_ENDPOINT_ALLOWED: list[str] = [
         r.strip()
         for r in os.getenv("USERS_ENDPOINT_ALLOWED", "").split(",")

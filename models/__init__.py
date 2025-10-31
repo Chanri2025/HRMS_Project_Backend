@@ -1,10 +1,6 @@
-from .base import Base
 from .auth_user import AuthUser
-from .role import Role
-from .user_role import UserRole
-from .employee import Employee
-from .refresh_token import RefreshToken
+from .role_list import Role
+from .employee_list import Employee
+from .refresh_tokens import RefreshToken
 
-# Relationships already declared via back_populates / secondary.
-# This file ensures a single import point for all models.
-__all__ = ["Base", "AuthUser", "Role", "UserRole", "Employee", "RefreshToken"]
+__all__ = ["AuthUser", "Role", "Employee", "RefreshToken"]

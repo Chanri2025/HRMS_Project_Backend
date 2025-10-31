@@ -1,5 +1,8 @@
+# models/auth_user.py
+from __future__ import annotations
+from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, String, Boolean, DateTime, Text
+from sqlalchemy import BigInteger, String, Boolean, DateTime, Integer
 from datetime import datetime
 from .base import Base
 
@@ -8,21 +11,26 @@ class AuthUser(Base):
     __tablename__ = "users"
     __table_args__ = {"schema": "dbo"}
 
-    user_id: Mapped[int] = mapped_column(
-        BigInteger, primary_key=True, autoincrement=True
-    )
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    full_name: Mapped[str] = mapped_column(String(120), nullable=False)
-    profile_photo: Mapped[str | None] = mapped_column(Text, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    last_active: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # DB column is named 'password'
+    password_hash: Mapped[str] = mapped_column("password", String(255), nullable=False)
 
-    Roles = relationship("Role", secondary="dbo.user_roles", back_populates="Users")
-    Employee = relationship("Employee", uselist=False, back_populates="User")
-    RefreshTokens = relationship(
-        "RefreshToken", back_populates="User", cascade="all, delete"
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    last_active: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    # Store the role_id as an integer; DB enforces FK, ORM does not.
+    user_role_id: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Explicit, view-only relationship to Role without FK constraints in ORM
+    Role = relationship(
+        "Role",
+        primaryjoin="AuthUser.user_role_id == Role.role_id",
+        uselist=False,
+        viewonly=True,
     )
+
+    # One-to-one with Employee (no ORM FK on Employee side either)
+    Employee = relationship("Employee", uselist=False, back_populates="User")

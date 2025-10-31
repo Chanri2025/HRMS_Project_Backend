@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -5,16 +6,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 
 from config import settings
-from db import get_db, ping_db
+from db import get_db, ping_db, SessionLocal
 from routes import api_router
+# from utils.seed import seed_super_admin_sql  # <-- NEW
 
-# Optional: include your existing routers without changing them
-# You can keep adding more includes here if you already have route files.
+# Router presence flag (kept from your code)
 try:
-    from routes import api_router  # routes/__init__.py exposes api_router
+    from routes import api_router  # noqa: F401
 
     ROUTERS_PRESENT = True
-except Exception as _:
+except Exception:
     ROUTERS_PRESENT = False
 
 app = FastAPI(title="FastAPI + MSSQL Boilerplate", version="0.1.0")
@@ -29,29 +30,33 @@ app.add_middleware(
 )
 
 # include all routers
-app.include_router(api_router)
+if ROUTERS_PRESENT:
+    app.include_router(api_router)
 
 
 @app.on_event("startup")
 def _startup():
     print("🚀 Starting FastAPI Server...")
-    print(f"🔗 Attempting to connect to MSSQL at {settings.DB_HOST}:{settings.DB_PORT}")
+    print(f"🔗 MSSQL: {settings.DB_HOST}:{settings.DB_PORT}")
     try:
         ping_db()
-        print("✅ Database connection successful.")
+        print("✅ Database connection OK.")
     except SQLAlchemyError as e:
-        print("❌ Database connection failed:")
-        print(f"   {e}")
+        print("❌ Database connection failed:", e)
+        return
+
     if ROUTERS_PRESENT:
-        print("🧩 Routers: loaded from routes/")
-    else:
-        print("🧩 Routers: none found (skipping include)")
+        print("🧩 Routers loaded from routes/")
+
+    # ---- seed super admin (idempotent, SQL-only) ----
+    # try:
+    #     with SessionLocal() as db:
+    #         result = seed_super_admin_sql(db)
+    #         print(f"🌱 Seeded Super Admin: {result}")
+    # except Exception as e:
+    #     print("⚠️ Super Admin seed failed:", e)
+
     print("✅ Startup complete.\n")
-
-
-# Mount your existing routers (if present)
-if ROUTERS_PRESENT:
-    app.include_router(api_router)
 
 
 @app.get("/health")
@@ -67,7 +72,6 @@ def db_ping():
 
 @app.get("/example-now", summary="Simple sample query to prove the session works")
 def example_now(db: Session = Depends(get_db)):
-    # SQLAlchemy 2.x: prefer text() for raw SQL
     row = db.execute(text("SELECT SYSDATETIMEOFFSET() AS now_utc_offset")).fetchone()
     return {"now": str(row.now_utc_offset) if row else None}
 
@@ -77,5 +81,5 @@ def whoami():
     return {
         "allowed_users_endpoints": settings.USERS_ENDPOINT_ALLOWED,
         "allowed_user_get_endpoints": settings.USER_GET_ENDPOINT_ALLOWED,
-        "note": "JWT/roles not enforced yet.",
+        "note": "JWT/roles enforced by auth_router where applied.",
     }
